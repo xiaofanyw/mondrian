@@ -139,7 +139,7 @@ public class RolapCell implements Cell {
         final List<RolapMember> currentMembers = getMembersForDrillThrough();
         // Create a StarPredicate to represent the compound
         // slicer (if necessary)
-        // NOTE: the method buildDrillthroughSlicerPredicate modifies
+        // NOTE: the method buildDrillthroughSlicerPredicate modifiesRolapAggregationManager
         // the array of members, so it MUST be called before calling
         // RolapAggregationManager.makeDrillThroughRequest
         StarPredicate starPredicateSlicer =

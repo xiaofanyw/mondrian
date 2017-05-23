@@ -481,8 +481,51 @@ public class RolapEvaluator implements Evaluator {
      *
      * @param member a member in the slicer
      */
+//    public final void setSlicerContext(Member member) {
+//        setContext(member);
+//        slicerMembers.add((RolapMember) member);
+//    }
+
+    /**
+     * Adds a slicer member to the evaluator context and do not update the currentMembers
+     * @param member
+     */
     public final void setSlicerContext(Member member) {
-        setContext(member);
+        // Note: the body of this function is identical to calling
+        // 'setContext(member, true)'. We inline the logic for performance.
+
+        final RolapMember m = (RolapMember) member;
+        final int ordinal = m.getHierarchy().getOrdinalInCube();
+        final RolapMember previous = currentMembers[ordinal];
+
+        // If the context is unchanged, save ourselves some effort. It would be
+        // a mistake to use equals here; we might treat the visual total member
+        // 'Gender.All' the same as the true 'Gender.All' because they have the
+        // same unique name, and that would be wrong.
+        if (same(m, previous)) {
+            return ;
+        }
+        // We call 'exists' before 'removeCalcMember' for efficiency.
+        // 'exists' has a smaller stack to search before 'removeCalcMember'
+        // adds an 'ADD_CALCULATION' command.
+        if (!exists(ordinal)) {
+            ensureCommandCapacity(commandCount + 3);
+            commands[commandCount++] = previous;
+            commands[commandCount++] = ordinal;
+            commands[commandCount++] = Command.SET_CONTEXT;
+        }
+        if (previous.isEvaluated()) {
+            removeCalculation(previous, false);
+        }
+//        currentMembers[ordinal] = m;
+        if (previous.isAll() && !m.isAll() && isNewPosition(ordinal)) {
+            root.nonAllPositions[root.nonAllPositionCount] = ordinal;
+            root.nonAllPositionCount++;
+        }
+        if (m.isEvaluated()) {
+            addCalculation(m, false);
+        }
+        nonAllMembers = null;
         slicerMembers.add((RolapMember) member);
     }
 

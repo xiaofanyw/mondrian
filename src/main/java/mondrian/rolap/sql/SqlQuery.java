@@ -99,6 +99,8 @@ public class SqlQuery {
 
     private int joinCount;
 
+    private Map<String, String> joinInfoMap = null;
+
     /** The SQL dialect this query is to be generated in. */
     private final Dialect dialect;
 
@@ -300,6 +302,10 @@ public class SqlQuery {
         }
 
         fromAliases.add(alias);
+//        if(joinCondition != null) {
+//            String[] conditions = joinCondition.split("=");
+//            from.joinOnClauses.add(new JoinOnClause(joinInfoMap.get(joinCondition), conditions[0].trim(), conditions[1].trim()));
+//        }
         from.add(buf.toString());
 
         if (filter != null) {
@@ -374,6 +380,7 @@ public class SqlQuery {
                 (alias == null)
                 ? table.getAlias()
                 : alias;
+            joinInfoMap = ((RolapSchema.PhysTable) relation).getJoinInfoMap();
             return addFromTable(
                 table.getSchemaName(),
                 table.getName(),
@@ -580,14 +587,20 @@ public class SqlQuery {
         final String first = distinct ? "select distinct " : "select ";
         select.toBuffer(buf, generateFormattedSql, prefix, first, ", ", "", "");
         groupingFunctionsToBuffer(buf, prefix);
-        String fromSep = joinCount > 0 ? " join " : ", ";
+//        String fromSep = joinCount > 0 ? " " + joinTypes.get(joinCount) + " join " : ", ";
+        String fromSep = joinCount > 0 ? " " : ", ";
+//        String fromSep = ", ";
         if (dialect.allowsJoinOn() && from.size() > 1) {
             if (joinCount <= 0) {
+//            if (joinCount < 0) {
                 throw new AssertionError();
             }
         }
+
+//        from.toBuffer(
+//                buf, generateFormattedSql, prefix, " from ", fromSep, "", "");
         from.toBuffer(
-            buf, generateFormattedSql, prefix, " from ", fromSep, "", "");
+                buf, generateFormattedSql, prefix, " from ", fromSep, "", "", joinInfoMap);
         where.toBuffer(
             buf, generateFormattedSql, prefix, " where ", " and ", "", "");
         if (groupingSets.isEmpty()) {
@@ -816,6 +829,25 @@ public class SqlQuery {
             toBuffer(buf, first, sep, last);
         }
 
+        final void toBuffer(
+                StringBuilder buf,
+                boolean generateFormattedSql,
+                String prefix,
+                String first,
+                String sep,
+                String last,
+                String empty,
+                Map<String, String> joinInfoMap)
+        {
+            if (isEmpty()) {
+                buf.append(empty);
+                return;
+            }
+            first = foo(generateFormattedSql, prefix, first);
+            sep = foo(generateFormattedSql, prefix, sep);
+            toBuffer(buf, first, sep, last, joinInfoMap);
+        }
+
         static String foo(
             boolean generateFormattedSql,
             String prefix,
@@ -843,7 +875,36 @@ public class SqlQuery {
             final StringBuilder buf,
             final String first,
             final String sep,
-            final String last)
+            final String last,
+            final Map<String, String> joinInfoMap)
+        {
+            int n = 0;
+            buf.append(first);
+            for (String s : this) {
+                if (n++ > 0) {
+                    buf.append(sep);
+                }
+                buf.append(getJoinType(s, joinInfoMap)).append(s);
+            }
+            buf.append(last);
+        }
+
+        static String getJoinType(String fromCondition, Map<String, String> joinInfoMap){
+            String type = "";
+            for(String key : joinInfoMap.keySet()){
+                if(fromCondition.indexOf(key) != -1){
+                    type = joinInfoMap.get(key) + " join ";
+                    break;
+                }
+            }
+            return type;
+        }
+
+        final void toBuffer(
+                final StringBuilder buf,
+                final String first,
+                final String sep,
+                final String last)
         {
             int n = 0;
             buf.append(first);

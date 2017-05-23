@@ -9,8 +9,7 @@
 */
 package mondrian.olap4j;
 
-import mondrian.olap.LocalizedProperty;
-import mondrian.olap.OlapElement;
+import mondrian.olap.*;
 import mondrian.rolap.RolapMeasure;
 
 import org.olap4j.OlapException;
@@ -18,6 +17,11 @@ import org.olap4j.impl.AbstractNamedList;
 import org.olap4j.impl.Named;
 import org.olap4j.mdx.ParseTreeNode;
 import org.olap4j.metadata.*;
+import org.olap4j.metadata.Dimension;
+import org.olap4j.metadata.Hierarchy;
+import org.olap4j.metadata.Level;
+import org.olap4j.metadata.Member;
+import org.olap4j.metadata.Property;
 
 import java.util.*;
 
@@ -30,7 +34,7 @@ import java.util.*;
  * @author jhyde
  * @since May 25, 2007
  */
-class MondrianOlap4jMember
+public class MondrianOlap4jMember
     extends MondrianOlap4jMetadataElement
     implements Member, Named
 {
@@ -269,6 +273,10 @@ class MondrianOlap4jMember
     }
 
     protected OlapElement getOlapElement() {
+        return member;
+    }
+
+    public mondrian.olap.Member getMember() {
         return member;
     }
 }

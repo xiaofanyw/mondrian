@@ -33,7 +33,7 @@ import java.util.*;
  * @author jhyde
  * @since May 25, 2007
  */
-class MondrianOlap4jLevel
+public class MondrianOlap4jLevel
     extends MondrianOlap4jMetadataElement
     implements Level, Named
 {
@@ -193,6 +193,10 @@ class MondrianOlap4jLevel
 
     protected OlapElement getOlapElement() {
         return level;
+    }
+
+    public Map<String, Annotation> getAnnotations(){
+        return level.getAnnotationMap();
     }
 }
 

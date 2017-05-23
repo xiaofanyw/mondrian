@@ -1331,6 +1331,18 @@ Default time unit is milliseconds.</p>
         <Type>String</Type>
         <Default>3000ms</Default>
     </PropertyDefinition>
+
+    <PropertyDefinition>
+        <Name>LimitRows</Name>
+        <Path>mondrian.limit.rows</Path>
+        <Description>
+            <p>add limit to sql</p>
+        </Description>
+        <Type>int</Type>
+        <Default>50000</Default>
+    </PropertyDefinition>
+
+
     <PropertyDefinition>
         <Name>FilterChildlessSnowflakeMembers</Name>
         <Path>mondrian.rolap.FilterChildlessSnowflakeMembers</Path>

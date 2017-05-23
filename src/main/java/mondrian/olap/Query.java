@@ -585,18 +585,18 @@ public class Query extends QueryPart {
         }
 
         // Make sure that no hierarchy is used on more than one axis.
-        for (Hierarchy hierarchy : ((RolapCube) getCube()).getHierarchyList()) {
-            int useCount = 0;
-            for (QueryAxis axis : allAxes()) {
-                if (axis.getSet().getType().usesHierarchy(hierarchy, true)) {
-                    ++useCount;
-                }
-            }
-            if (useCount > 1) {
-                throw MondrianResource.instance().HierarchyInIndependentAxes.ex(
-                    hierarchy.getUniqueName());
-            }
-        }
+//        for (Hierarchy hierarchy : ((RolapCube) getCube()).getHierarchyList()) {
+//            int useCount = 0;
+//            for (QueryAxis axis : allAxes()) {
+//                if (axis.getSet().getType().usesHierarchy(hierarchy, true)) {
+//                    ++useCount;
+//                }
+//            }
+//            if (useCount > 1) {
+//                throw MondrianResource.instance().HierarchyInIndependentAxes.ex(
+//                    hierarchy.getUniqueName());
+//            }
+//        }
     }
 
     @Override

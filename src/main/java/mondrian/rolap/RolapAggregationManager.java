@@ -729,7 +729,11 @@ public abstract class RolapAggregationManager {
             }
         }
 
-        return Predicates.or(compoundPredicateList);
+//        change or to and
+//        when there are two dimension on filter, there result is where dimension a and dimension b
+//        so on this StarPredicate use and
+//        return Predicates.or(compoundPredicateList);
+        return Predicates.and(compoundPredicateList);
     }
 
     private static StarPredicate makeCompoundPredicateForMember(

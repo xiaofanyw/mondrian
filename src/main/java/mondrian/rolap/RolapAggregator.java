@@ -40,6 +40,7 @@ public abstract class RolapAggregator
             public boolean supportsFastAggregates(Dialect.Datatype dataType) {
                 switch (dataType) {
                 case Integer:
+                case Long:
                 case Numeric:
                     return true;
                 default:
@@ -63,8 +64,24 @@ public abstract class RolapAggregator
                         }
                     }
                     return sumInt == Integer.MIN_VALUE
+                            ? null
+                            : sumInt;
+                  case Long:
+                    long sumLong = Long.MIN_VALUE;
+                    for (Object data : rawData) {
+                        if (data != null) {
+                            if (sumLong == Long.MIN_VALUE) {
+                                sumLong = 0l;
+                            }
+                            if (data instanceof Double) {
+                                data = ((Double) data).longValue();
+                            }
+                            sumLong += (Long) data;
+                        }
+                    }
+                    return sumLong == Long.MIN_VALUE
                         ? null
-                        : sumInt;
+                        : sumLong;
                 case Numeric:
                     double sumDouble = Double.MIN_VALUE;
                     for (Object data : rawData) {
@@ -102,6 +119,7 @@ public abstract class RolapAggregator
                 List<Dialect.Datatype> parameterDatatypes)
             {
                 return Dialect.Datatype.Integer;
+//                return Datatype.Long;
             }
         };
 
@@ -116,6 +134,7 @@ public abstract class RolapAggregator
             public boolean supportsFastAggregates(Dialect.Datatype dataType) {
                 switch (dataType) {
                 case Integer:
+                case Long:
                 case Numeric:
                     return true;
                 default:
@@ -128,13 +147,23 @@ public abstract class RolapAggregator
                 case Integer:
                     int minInt = Integer.MAX_VALUE;
                     for (Object data : rawData) {
-                        if (data != null) {
-                            minInt = Math.min(minInt, (Integer)data);
-                        }
+                         if (data != null) {
+                             minInt = Math.min(minInt, (Integer) data);
+                         }
                     }
                     return minInt == Integer.MAX_VALUE
                         ? null
                         : minInt;
+                case Long:
+                    long minLong = Long.MAX_VALUE;
+                    for (Object data : rawData) {
+                        if (data != null) {
+                            minLong = Math.min(minLong, (Long)data);
+                        }
+                    }
+                    return minLong == Long.MAX_VALUE
+                        ? null
+                        : minLong;
                 case Numeric:
                     double minDouble = Double.MAX_VALUE;
                     for (Object data : rawData) {
@@ -167,6 +196,7 @@ public abstract class RolapAggregator
             public boolean supportsFastAggregates(Dialect.Datatype dataType) {
                 switch (dataType) {
                 case Integer:
+                case Long:
                 case Numeric:
                     return true;
                 default:
@@ -180,12 +210,22 @@ public abstract class RolapAggregator
                     int maxInt = Integer.MIN_VALUE;
                     for (Object data : rawData) {
                         if (data != null) {
-                            maxInt = Math.max(maxInt, (Integer)data);
+                            maxInt = Math.max(maxInt, (Integer) data);
                         }
                     }
                     return maxInt == Integer.MIN_VALUE
                         ? null
                         : maxInt;
+                case Long:
+                    long maxLong = Long.MIN_VALUE;
+                    for (Object data : rawData) {
+                        if (data != null) {
+                            maxLong = Math.max(maxLong, (Long)data);
+                        }
+                    }
+                    return maxLong == Long.MIN_VALUE
+                        ? null
+                        : maxLong;
                 case Numeric:
                     double maxDouble = Double.MIN_VALUE;
                     for (Object data : rawData) {
@@ -261,7 +301,7 @@ public abstract class RolapAggregator
             public Dialect.Datatype deriveDatatype(
                 List<Dialect.Datatype> parameterDatatypes)
             {
-                return Dialect.Datatype.Integer;
+                return Datatype.Integer;
             }
         };
 

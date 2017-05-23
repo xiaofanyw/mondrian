@@ -121,7 +121,10 @@ public class JdbcDialectImpl implements Dialect {
         typeMapInitial.put(Types.BOOLEAN, SqlStatement.Type.INT);
         typeMapInitial.put(Types.DOUBLE, SqlStatement.Type.DOUBLE);
         typeMapInitial.put(Types.FLOAT, SqlStatement.Type.DOUBLE);
-        typeMapInitial.put(Types.BIGINT, SqlStatement.Type.DOUBLE);
+//        typeMapInitial.put(Types.BIGINT, SqlStatement.Type.DOUBLE);
+        typeMapInitial.put(Types.BIGINT, SqlStatement.Type.LONG);
+        typeMapInitial.put(Types.DATE, SqlStatement.Type.DATE);
+        typeMapInitial.put(Types.TIMESTAMP, SqlStatement.Type.TIMESTAMP);
 
         DEFAULT_TYPE_MAP = Collections.unmodifiableMap(typeMapInitial);
     }
@@ -1065,6 +1068,8 @@ public class JdbcDialectImpl implements Dialect {
             return DatabaseProduct.INGRES;
         } else if (productName.equals("Interbase")) {
             return DatabaseProduct.INTERBASE;
+        } else if (upperProductName.equals("KYLIN")) {
+            return DatabaseProduct.KYLIN;
         } else if (upperProductName.equals("LUCIDDB")
             || upperProductName.equals("OPTIQ"))
         {
@@ -1131,8 +1136,9 @@ public class JdbcDialectImpl implements Dialect {
         case Types.TINYINT:
         case Types.SMALLINT:
         case Types.INTEGER:
-        case Types.BIGINT:
             return Datatype.Integer;
+        case Types.BIGINT:
+            return Datatype.Long;
         case Types.NUMERIC:
         case Types.DECIMAL:
         case Types.FLOAT:

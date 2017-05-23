@@ -951,6 +951,7 @@ public interface Dialect {
         INFOBRIGHT,
         INGRES,
         INTERBASE,
+        KYLIN,
         LUCIDDB,
         MSSQL,
         MONETDB,
@@ -1034,6 +1035,18 @@ public interface Dialect {
             }
         },
 
+        Long {
+            public void quoteValue(
+                    StringBuilder buf, Dialect dialect, Object value)
+            {
+                dialect.quoteNumericLiteral(buf, toLong(value));
+            }
+
+            public boolean isNumeric() {
+                return true;
+            }
+        },
+
         Boolean {
             public void quoteValue(
                 StringBuilder buf, Dialect dialect, Object value)
@@ -1076,6 +1089,23 @@ public interface Dialect {
         }
 
         private static Number toInteger(Object value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+            Number number;
+            if (value instanceof Number) {
+                number = (Number) value;
+            } else {
+                // Test whether value is a valid numeric by converting to
+                // BigDecimal. BigDecimal is stricter than Integer.parseString
+                // or Double.parseString; it does not allow any extraneous
+                // space.
+                number = new BigDecimal(value.toString());
+            }
+            return number;
+        }
+
+        private static Number toLong(Object value) {
             if (value == null) {
                 throw new NullPointerException();
             }

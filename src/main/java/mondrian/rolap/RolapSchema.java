@@ -1376,6 +1376,7 @@ public class RolapSchema extends OlapElementBase implements Schema {
         void addColumn(PhysColumn column);
 
         PhysRelation cloneWithAlias(String newAlias);
+
     }
 
     static abstract class PhysRelationImpl implements PhysRelation {
@@ -1896,6 +1897,16 @@ public class RolapSchema extends OlapElementBase implements Schema {
             boolean apply(
                 PhysTable table,
                 RolapConnection connection);
+        }
+
+        private Map<String, String> joinInfoMap = new HashMap<String, String>();
+
+        public void addJoinInfo(String joinCondition, String joinType){
+            this.joinInfoMap.put(joinCondition, joinType);
+        }
+
+        public Map getJoinInfoMap(){
+            return joinInfoMap;
         }
     }
 

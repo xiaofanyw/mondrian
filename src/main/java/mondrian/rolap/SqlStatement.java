@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import java.lang.reflect.Proxy;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.*;
@@ -199,7 +200,8 @@ public class SqlStatement implements DBStatement {
                     getPurpose(),
                     getCellRequestCount()));
 
-            this.resultSet = statement.executeQuery(sql);
+//            this.resultSet = statement.executeQuery(sql);
+            this.resultSet = statement.executeQuery(sql + " limit " + MondrianProperties.instance().LimitRows.get());
 
             // skip to first row specified in request
             this.state = State.ACTIVE;
@@ -442,6 +444,22 @@ public class SqlStatement implements DBStatement {
                     return val;
                 }
             };
+        case DATE:
+            return new Accessor() {
+                public Comparable get() throws SQLException {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    return resultSet.getDate(columnPlusOne, calendar);
+                }
+            };
+        case TIMESTAMP:
+            return new Accessor() {
+                public Comparable get() throws SQLException {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    return resultSet.getTimestamp(columnPlusOne, calendar);
+                }
+            };
         default:
             throw Util.unexpected(type);
         }
@@ -523,7 +541,9 @@ public class SqlStatement implements DBStatement {
         DOUBLE,
         INT,
         LONG,
-        STRING;
+        STRING,
+        DATE,
+        TIMESTAMP;
 
         public Object get(ResultSet resultSet, int column) throws SQLException {
             switch (this) {
@@ -537,6 +557,14 @@ public class SqlStatement implements DBStatement {
                 return resultSet.getLong(column + 1);
             case DOUBLE:
                 return resultSet.getDouble(column + 1);
+            case DATE:
+                Calendar calendar1 = Calendar.getInstance();
+                calendar1.setTimeZone(TimeZone.getTimeZone("GMT"));
+                return resultSet.getDate(column + 1, calendar1);
+            case TIMESTAMP:
+                Calendar calendar2 = Calendar.getInstance();
+                calendar2.setTimeZone(TimeZone.getTimeZone("GMT"));
+                return resultSet.getTimestamp(column + 1, calendar2);
             default:
                 throw Util.unexpected(this);
             }

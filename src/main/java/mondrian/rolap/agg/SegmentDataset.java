@@ -43,6 +43,14 @@ public interface SegmentDataset extends Iterable<Map.Entry<CellKey, Object>> {
     int getInt(CellKey pos);
 
     /**
+     * Returns the value at a given coordinate, as an {@code long}.
+     *
+     * @param pos Coordinate position
+     * @return Value
+     */
+    long getLong(CellKey pos);
+
+    /**
      * Returns the value at a given coordinate, as a {@code double}.
      *
      * @param pos Coordinate position

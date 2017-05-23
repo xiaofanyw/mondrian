@@ -245,7 +245,10 @@ public class RolapResult extends ResultBase {
             // the slicer.
             final RolapEvaluator savedEvaluator = evaluator.push();
 
+            List<List<Member>> aggregationList = null;
+
             if (!axisMembers.isEmpty()) {
+                aggregationList = new ArrayList<List<Member>>();
                 for (Member m : axisMembers) {
                     if (m == null) {
                         break;
@@ -256,14 +259,38 @@ public class RolapResult extends ResultBase {
                         // Slicer, don't need to worry about Measures
                         // for this query.
                         measureMembers.clear();
+                    }else{
+                        List<Member> members = new ArrayList<Member>();
+                        members.add(m);
+                        aggregationList.add(members);
                     }
+
                 }
+
                 replaceNonAllMembers(nonAllMembers, axisMembers);
                 axisMembers.clearMembers();
             }
 
+//          the dimension on both filter and row/column
+//          mdx like "SET [~ROWS_dev2.matrix_log_dev2.matrix_log.pf] AS
+//          {[dev2.matrix_log].[dev2.matrix_log.pf].[android]}"
+//          then the filer selections won't be wrote to slicer
+//          when do some sort, the result is't right, so get filter selections
+//          from memory and insert to slicer
+            List<List<Member>> tmpList = getFilterMemberOnRowOrColumn();
+            if(tmpList != null){
+                if(aggregationList != null)
+                    aggregationList.addAll(tmpList);
+                else
+                    aggregationList = tmpList;
+            }
+
             // Save evaluator that has slicer as its context.
-            slicerEvaluator = evaluator.push();
+            if(aggregationList == null || aggregationList.size() == 0)
+                slicerEvaluator = evaluator.push();
+            else
+//              write filter selection to slicer
+                slicerEvaluator = evaluator._push(aggregationList);
 
             /////////////////////////////////////////////////////////////////
             // Determine Axes
@@ -995,6 +1022,37 @@ public class RolapResult extends ResultBase {
             return o;
         } finally {
             evaluator.restore(savepoint);
+        }
+    }
+
+    private List<List<Member>> getFilterMemberOnRowOrColumn(){
+        List<List<Member>> filterMemberOnRowOrColumn = new ArrayList<List<Member>>();
+        for(Formula formula : this.query.getFormulas()){
+            for(Object children : formula.getChildren()){
+                if(children instanceof ResolvedFunCall){
+                    getFilterMemberFromResolvedFunCall(filterMemberOnRowOrColumn, (ResolvedFunCall)children);
+                }
+            }
+        }
+        if(filterMemberOnRowOrColumn.size() == 0)
+            return null;
+        else
+            return filterMemberOnRowOrColumn;
+    }
+
+    private void getFilterMemberFromResolvedFunCall(List<List<Member>> memberList, ResolvedFunCall resolvedFunCall){
+        Exp[] exps = resolvedFunCall.getArgs();
+        for(Exp exp : exps){
+            if(exp instanceof MemberExpr){
+                Member member = ((MemberExpr) exp).getMember();
+                if(!member.isMeasure()) {
+                    List<Member> tmpList = new ArrayList<Member>();
+                    tmpList.add(member);
+                    memberList.add(tmpList);
+                }
+            }else if(exp instanceof ResolvedFunCall){
+                getFilterMemberFromResolvedFunCall(memberList, (ResolvedFunCall)exp);
+            }
         }
     }
 

@@ -145,7 +145,8 @@ public class SqlStatisticsProvider implements StatisticsProvider {
     {
         final StringBuilder buf = new StringBuilder();
         String exprString = dialect.quoteIdentifier(column);
-        if (dialect.allowsCountDistinct()) {
+//        if (dialect.allowsCountDistinct()) {
+        if (dialect.allowsCountDistinct() && !(dialect instanceof KylinDialect)) {
             // e.g. "select count(distinct product_id) from product"
             buf.append("select count(distinct ")
                 .append(exprString)

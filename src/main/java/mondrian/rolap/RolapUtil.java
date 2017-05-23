@@ -339,10 +339,17 @@ public class RolapUtil {
         int resultSetConcurrency,
         Util.Function1<java.sql.Statement, Void> callback)
     {
-        SqlStatement stmt =
-            new SqlStatement(
-                dataSource, sql, types, maxRowCount, firstRowOrdinal, locus,
-                resultSetType, resultSetConcurrency, callback);
+        SqlStatement stmt = null;
+        if(maxRowCount > 0 ) {
+            stmt = new SqlStatement(
+                    dataSource, sql, types, maxRowCount, firstRowOrdinal, locus,
+                    resultSetType, resultSetConcurrency, callback);
+        }
+        else{
+            stmt = new SqlStatement(
+                    dataSource, sql, types, MondrianProperties.instance().LimitRows.get(), firstRowOrdinal, locus,
+                    resultSetType, resultSetConcurrency, callback);
+        }
         stmt.execute();
         return stmt;
     }

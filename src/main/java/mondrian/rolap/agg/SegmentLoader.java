@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -346,6 +347,8 @@ public class SegmentLoader {
                 case INT:
                 case LONG:
                 case DOUBLE:
+                case DATE:
+                case TIMESTAMP:
                     Object o = rows.getObject(j);
                     if (useGroupingSet
                         && (o == null || o == RolapUtil.sqlNullValue)
@@ -769,6 +772,50 @@ public class SegmentLoader {
                     axisValueSets[axisIndex].add(doubleValue);
                     processedRows.setDouble(columnIndex, doubleValue);
                     break;
+                case DATE:
+                    Calendar calendar1 = Calendar.getInstance();
+                    calendar1.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    Date date = rawRows.getDate(columnIndex + 1, calendar1);
+                    if (date == null) {
+                        if (!groupingSetsList.useGroupingSets()
+                                || !isAggregateNull(
+                                rawRows,
+                                groupingColumnStartIndex,
+                                groupingSetsList,
+                                axisIndex))
+                        {
+                            axisContainsNull[axisIndex] = true;
+                        }
+                    } else {
+                        // We assume that all values are Comparable. Boolean
+                        // wasn't Comparable until JDK 1.5, but we can live with
+                        // that bug because JDK 1.4 is no longer important.
+                        axisValueSets[axisIndex].add((Comparable<?>) date);
+                    }
+                    processedRows.setDate(columnIndex, date);
+                    break;
+                case TIMESTAMP:
+                    Calendar calendar2 = Calendar.getInstance();
+                    calendar2.setTimeZone(TimeZone.getTimeZone("GMT"));
+                        Timestamp timestamp = rawRows.getTimestamp(columnIndex + 1, calendar2);
+                        if (timestamp == null) {
+                            if (!groupingSetsList.useGroupingSets()
+                                    || !isAggregateNull(
+                                    rawRows,
+                                    groupingColumnStartIndex,
+                                    groupingSetsList,
+                                    axisIndex))
+                            {
+                                axisContainsNull[axisIndex] = true;
+                            }
+                        } else {
+                            // We assume that all values are Comparable. Boolean
+                            // wasn't Comparable until JDK 1.5, but we can live with
+                            // that bug because JDK 1.4 is no longer important.
+                            axisValueSets[axisIndex].add((Comparable<?>) timestamp);
+                        }
+                        processedRows.setTimestamp(columnIndex, timestamp);
+                        break;
                 default:
                     throw Util.unexpected(type);
                 }
@@ -828,6 +875,16 @@ public class SegmentLoader {
                         processedRows.setNull(columnIndex, true);
                     }
                     break;
+                case TIMESTAMP:
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+                        final Timestamp timestampValue =
+                                rawRows.getTimestamp(columnIndex + 1, calendar);
+                        processedRows.setTimestamp(columnIndex, timestampValue);
+                        if (timestampValue == null && rawRows.wasNull()) {
+                            processedRows.setNull(columnIndex, true);
+                        }
+                        break;
                 default:
                     throw Util.unexpected(type);
                 }
@@ -1038,6 +1095,14 @@ public class SegmentLoader {
             columns[column].setLong(currentRow, value);
         }
 
+        public void setDate(int column, Date value) {
+            columns[column].setDate(currentRow, value);
+        }
+
+        public void setTimestamp(int column, Timestamp value) {
+            columns[column].setTimestamp(currentRow, value);
+        }
+
         public int size() {
             return rowCount;
         }
@@ -1115,8 +1180,16 @@ public class SegmentLoader {
             return columns[columnIndex].getInt(currentRow);
         }
 
+        public long getLong(int columnIndex) {
+            return columns[columnIndex].getLong(currentRow);
+        }
+
         public double getDouble(int columnIndex) {
             return columns[columnIndex].getDouble(currentRow);
+        }
+
+        public Date getDate(int columnIndex) {
+            return columns[columnIndex].getDate(currentRow);
         }
 
         public boolean isNull(int columnIndex) {
@@ -1151,6 +1224,10 @@ public class SegmentLoader {
                     return new LongColumn(ordinal, type, capacity);
                 case DOUBLE:
                     return new DoubleColumn(ordinal, type, capacity);
+                case DATE:
+                    return new DateColumn(ordinal, type, capacity);
+                case TIMESTAMP:
+                    return new TimestampColumn(ordinal, type, capacity);
                 default:
                     throw Util.unexpected(type);
                 }
@@ -1178,6 +1255,14 @@ public class SegmentLoader {
                 throw new UnsupportedOperationException();
             }
 
+            public void setDate(int row, Date value) {
+                throw new UnsupportedOperationException();
+            }
+
+            public void setTimestamp(int row, Timestamp value) {
+                throw new UnsupportedOperationException();
+            }
+
             public abstract void populateFrom(int row, ResultSet resultSet)
                 throws SQLException;
 
@@ -1189,7 +1274,15 @@ public class SegmentLoader {
                 throw new UnsupportedOperationException();
             }
 
+            public long getLong(int row){
+                throw new UnsupportedOperationException();
+            }
+
             public double getDouble(int row) {
+                throw new UnsupportedOperationException();
+            }
+
+            public Date getDate(int row) {
                 throw new UnsupportedOperationException();
             }
 
@@ -1381,6 +1474,84 @@ public class SegmentLoader {
 
             public Double getObject(int row) {
                 return isNull(row) ? null : doubles[row];
+            }
+        }
+
+        static class DateColumn extends Column {
+            private Date[] dates;
+
+            DateColumn(int ordinal, SqlStatement.Type type, int size) {
+                super(ordinal, type);
+                dates = new Date[size];
+            }
+
+            public void resize(int newSize) {
+                dates = Util.copyOf(dates, newSize);
+            }
+
+            public void populateFrom(int row, ResultSet resultSet)
+                    throws SQLException
+            {
+                dates[row] = resultSet.getDate(ordinal + 1);
+            }
+
+            public void setDate(int row, Date value) {
+                dates[row] = value;
+            }
+
+            public Date getDate(int row) {
+                return dates[row];
+            }
+
+            protected int getCapacity() {
+                return dates.length;
+            }
+
+            public boolean isNull(int row) {
+                return dates[row] == null;
+            }
+
+            public Date getObject(int row) {
+                return isNull(row) ? null : dates[row];
+            }
+        }
+
+        static class TimestampColumn extends Column {
+            private Timestamp[] timestamps;
+
+            TimestampColumn(int ordinal, SqlStatement.Type type, int size) {
+                super(ordinal, type);
+                timestamps = new Timestamp[size];
+            }
+
+            public void resize(int newSize) {
+                timestamps = Util.copyOf(timestamps, newSize);
+            }
+
+            public void populateFrom(int row, ResultSet resultSet)
+                    throws SQLException
+            {
+                timestamps[row] = resultSet.getTimestamp(ordinal + 1);
+            }
+
+            public void setTimestamp(int row, Timestamp value) {
+                timestamps[row] = value;
+            }
+
+            public Timestamp getTimestamp(int row) {
+                return timestamps[row];
+            }
+
+            protected int getCapacity() {
+                return timestamps.length;
+            }
+
+            public boolean isNull(int row) {
+                return timestamps[row] == null;
+            }
+
+            public Date getObject(int row) {
+                return isNull(row) ? null : timestamps[row];
             }
         }
 

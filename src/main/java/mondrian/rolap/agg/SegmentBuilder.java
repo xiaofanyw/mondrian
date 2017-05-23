@@ -86,6 +86,12 @@ public class SegmentBuilder {
                     axes,
                     (int[]) body.getValueArray(),
                     body.getNullValueIndicators());
+        } else if (body instanceof DenseLongSegmentBody) {
+            dataSet =
+                new DenseLongSegmentDataset(
+                    axes,
+                    (long[]) body.getValueArray(),
+                    body.getNullValueIndicators());
         } else if (body instanceof DenseObjectSegmentBody) {
             dataSet =
                 new DenseObjectSegmentDataset(
@@ -448,6 +454,7 @@ public class SegmentBuilder {
             final int valueCount = bigValueCount.intValue();
             switch (datatype) {
             case Integer:
+//              case Long:
                 final int[] ints = new int[valueCount];
                 nullValues = Util.bitSetBetween(0, valueCount);
                 for (Entry<CellKey, List<Object>> entry
@@ -470,6 +477,30 @@ public class SegmentBuilder {
                         nullValues,
                         ints,
                         axisList);
+                break;
+            case Long:
+                    final long[] longs = new long[valueCount];
+                    nullValues = Util.bitSetBetween(0, valueCount);
+                    for (Entry<CellKey, List<Object>> entry
+                            : cellValues.entrySet())
+                    {
+                        final int offset =
+                                CellKey.Generator.getOffset(
+                                        entry.getKey().getOrdinals(), axisMultipliers);
+                        final Object value =
+                                rollupAggregator.aggregate(
+                                        entry.getValue(),
+                                        datatype);
+                        if (value != null) {
+                            longs[offset] = (Long) value;
+                            nullValues.clear(offset);
+                        }
+                    }
+                    body =
+                            new DenseLongSegmentBody(
+                                    nullValues,
+                                    longs,
+                                    axisList);
                 break;
             case Numeric:
                 final double[] doubles = new double[valueCount];

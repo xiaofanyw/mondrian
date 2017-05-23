@@ -3485,7 +3485,8 @@ public class Util extends XOMUtil {
     {
         InputStream in = readVirtualFile(catalogUrl);
         try {
-            return IOUtils.toString(in);
+            return IOUtils.toString(in, "utf-8");
+//            return IOUtils.toString(in);
         } finally {
             IOUtils.closeQuietly(in);
         }

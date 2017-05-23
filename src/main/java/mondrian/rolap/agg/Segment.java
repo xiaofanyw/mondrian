@@ -346,6 +346,8 @@ public class Segment {
             case OBJECT:
             case STRING:
                 return new DenseObjectSegmentDataset(axes, size);
+            case LONG:
+                return new DenseLongSegmentDataset(axes, size);
             case INT:
                 return new DenseIntSegmentDataset(axes, size);
             case DOUBLE:

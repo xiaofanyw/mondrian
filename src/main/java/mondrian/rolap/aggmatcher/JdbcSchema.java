@@ -222,8 +222,9 @@ public class JdbcSchema {
         case Types.TINYINT:
         case Types.SMALLINT:
         case Types.INTEGER:
-        case Types.BIGINT:
             return Dialect.Datatype.Integer;
+        case Types.BIGINT:
+            return Dialect.Datatype.Long;
         case Types.FLOAT:
         case Types.REAL:
         case Types.DOUBLE:

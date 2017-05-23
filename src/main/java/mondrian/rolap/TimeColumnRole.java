@@ -23,6 +23,20 @@ import java.util.*;
  * @author jhyde
 */
 enum TimeColumnRole {
+//    JULIAN("time_id", Dialect.Datatype.Integer), // e.g. 2454115
+//    YYMMDD("yymmdd", Dialect.Datatype.Integer), // e.g. 121231
+//    YYYYMMDD("yyyymmdd", Dialect.Datatype.Integer), // e.g. 20121231
+//    DATE("the_date", Dialect.Datatype.Date), // e.g. '2012-12-31'
+//    DAY_OF_WEEK("day_of_week", Dialect.Datatype.Integer), // e.g. 0 (= Sunday)
+//    DAY_OF_WEEK_IN_MONTH("day_of_week_in_month", Dialect.Datatype.Integer),
+//    DAY_OF_WEEK_NAME("the_day", Dialect.Datatype.String), // e.g. 'Friday'
+//    MONTH_NAME("the_month", Dialect.Datatype.String), // e.g. 'December'
+//    YEAR("the_year", Dialect.Datatype.Integer), // e.g. 2012
+//    DAY_OF_MONTH("day_of_month", Dialect.Datatype.Integer), // e.g. 31
+//    WEEK_OF_YEAR("week_of_year", Dialect.Datatype.Integer), // e.g. 53
+//    MONTH("month_of_year", Dialect.Datatype.Integer), // e.g. 12
+//    QUARTER("quarter", Dialect.Datatype.String); // e.g. 'Q4'
+
     JULIAN("time_id", Dialect.Datatype.Integer), // e.g. 2454115
     YYMMDD("yymmdd", Dialect.Datatype.Integer), // e.g. 121231
     YYYYMMDD("yyyymmdd", Dialect.Datatype.Integer), // e.g. 20121231

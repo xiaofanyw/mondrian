@@ -18,6 +18,7 @@ import mondrian.rolap.sql.Clause;
 import mondrian.rolap.sql.SqlQuery;
 import mondrian.rolap.sql.SqlQueryBuilder;
 import mondrian.spi.Dialect;
+import mondrian.spi.impl.KylinDialect;
 import mondrian.util.Pair;
 
 import java.util.*;
@@ -958,7 +959,8 @@ public class SqlConstraintUtils {
                 // the value to upper-case in the DBMS (e.g. UPPER('Foo'))
                 // rather than in Java (e.g. 'FOO') in case the DBMS is running
                 // a different locale.
-                if (!MondrianProperties.instance().CaseSensitive.get()) {
+//                if (!MondrianProperties.instance().CaseSensitive.get()) {
+                if (!MondrianProperties.instance().CaseSensitive.get() && !(dialect instanceof KylinDialect)) {
                     columnString = dialect.toUpper(columnString);
                     value = dialect.toUpper(value);
                 }

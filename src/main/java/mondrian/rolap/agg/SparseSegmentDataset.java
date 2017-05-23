@@ -64,6 +64,10 @@ class SparseSegmentDataset implements SegmentDataset {
         throw new UnsupportedOperationException();
     }
 
+    public long getLong(CellKey pos) {
+        throw new UnsupportedOperationException();
+    }
+
     public double getDouble(CellKey pos) {
         throw new UnsupportedOperationException();
     }
