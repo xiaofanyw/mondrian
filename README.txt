@@ -16,7 +16,6 @@ Email: jhyde@pentaho.com
 
 base from mondrian-4.4
 fix some bug and add some new characters
-the bugs
 ========
 1.support type long timestamp
 2.support left/right join
