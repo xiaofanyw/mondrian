@@ -14,7 +14,7 @@ Project home: http://sourceforge.net/projects/mondrian/
 Email: jhyde@pentaho.com
 
 
-base from mondrian-4.4
+base on mondrian-4.4
 fix some bug and add some new characters
 ========
 1.support type long timestamp
